@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Te amo mi papayita</title>
+  <style>
+    :root {
+      --bg: #05050a;
+    }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      font-family: Inter, Segoe UI, Arial;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    #intro {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      z-index: 2;
+      transition: opacity 1s;
+    }
+
+    #intro h1 {
+      font-size: clamp(2.5em, 5vw, 4em);
+      margin: 0.5em;
+    }
+
+    .heart {
+      color: #ff4b6d;
+      font-size: 1.2em;
+      animation: beat 1s infinite;
+      display: inline-block;
+    }
+
+    @keyframes beat {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+    }
+
+    #intro button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #ff6b8e, #ff4b6d);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      transition: background 0.3s;
+    }
+
+    #intro button:hover {
+      background: linear-gradient(180deg, #ff4b6d, #ff2d55);
+    }
+
+    #canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    
+    .wrap {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 18px;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="intro">
+    <h1>Te amo mi papayita <span class="heart">❤</span></h1>
+    <button id="startBtn">Te amo</button>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      const intro = document.getElementById('intro');
+      const startBtn = document.getElementById('startBtn');
+
+      const DPR = Math.max(1, window.devicePixelRatio || 1);
+      function fitCanvas() {
+        canvas.width = window.innerWidth * DPR;
+        canvas.height = window.innerHeight * DPR;
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      }
+      fitCanvas();
+      window.addEventListener('resize', fitCanvas);
+
+      function createOffscreen(w, h) {
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        return c;
+      }
+
+      const flowerSize = 300;
+      const flowerCanvas = createOffscreen(flowerSize, flowerSize);
+      const fctx = flowerCanvas.getContext('2d');
+      (function buildFlower() {
+        const cx = flowerSize / 2, cy = flowerSize / 2;
+        fctx.clearRect(0, 0, flowerSize, flowerSize);
+        const outerCount = 26;
+        for (let i = 0; i < outerCount; i++) {
+          const angle = (i / outerCount) * Math.PI * 2;
+          const len = 110 + Math.sin(i * 0.6) * 8;
+          const wid = 30 + Math.cos(i * 0.9) * 3;
+          fctx.save();
+          fctx.translate(cx, cy);
+          fctx.rotate(angle);
+          fctx.beginPath();
+          fctx.moveTo(0, 0);
+          fctx.bezierCurveTo(wid * 0.15, -len * 0.25, wid * 0.6, -len * 0.8, 0, -len);
+          fctx.bezierCurveTo(-wid * 0.6, -len * 0.8, -wid * 0.15, -len * 0.25, 0, 0);
+          const g = fctx.createLinearGradient(0, -len, 0, 0);
+          g.addColorStop(0, '#fff59d');
+          g.addColorStop(0.5, '#ffd54f');
+          g.addColorStop(1, '#f0b323');
+          fctx.fillStyle = g;
+          fctx.fill();
+          fctx.beginPath();
+          fctx.moveTo(0, -len * 0.12);
+          fctx.quadraticCurveTo(wid * 0.12, -len * 0.45, 0, -len * 0.82);
+          fctx.strokeStyle = 'rgba(255,255,255,0.08)';
+          fctx.lineWidth = Math.max(1, wid * 0.12);
+          fctx.stroke();
+          fctx.restore();
+        }
+        const innerCount = Math.round(outerCount * 1.3);
+        for (let i = 0; i < innerCount; i++) {
+          const angle = (i / innerCount) * Math.PI * 2 + 0.03;
+          const len = 72 + Math.cos(i * 0.5) * 4;
+          const wid = 18 + (Math.cos(i * 0.7) * 1.5);
+          fctx.save();
+          fctx.translate(cx, cy);
+          fctx.rotate(angle);
+          fctx.beginPath();
+          fctx.moveTo(0, 0);
+          fctx.bezierCurveTo(wid * 0.12, -len * 0.22, wid * 0.45, -len * 0.7, 0, -len);
+          fctx.bezierCurveTo(-wid * 0.45, -len * 0.7, -wid * 0.12, -len * 0.22, 0, 0);
+          const g2 = fctx.createLinearGradient(0, -len, 0, 0);
+          g2.addColorStop(0, '#fff2b2');
+          g2.addColorStop(1, '#ffd36b');
+          fctx.fillStyle = g2;
+          fctx.fill();
+          fctx.restore();
+        }
+        const r = 60;
+        const rg = fctx.createRadialGradient(cx - r * 0.12, cy - r * 0.12, r * 0.1, cx, cy, r);
+        rg.addColorStop(0, '#9b6a4f');
+        rg.addColorStop(0.5, '#7a4b34');
+        rg.addColorStop(1, '#3b2418');
+        fctx.beginPath();
+        fctx.arc(cx, cy, r, 0, Math.PI * 2);
+        fctx.fillStyle = rg;
+        fctx.fill();
+        const seedCount = 900;
+        fctx.globalCompositeOperation = 'multiply';
+        for (let i = 0; i < seedCount; i++) {
+          const ang = Math.random() * Math.PI * 2;
+          const rad = Math.pow(Math.random(), 0.85) * r * 0.85;
+          const sx = cx + Math.cos(ang) * rad;
+          const sy = cy + Math.sin(ang) * rad;
+          const s = (Math.random() * 1.6 + 0.6) * (r / 70);
+          fctx.beginPath();
+          fctx.fillStyle = (Math.random() > 0.6) ? 'rgba(30,12,6,0.95)' : 'rgba(60,30,16,0.65)';
+          fctx.arc(sx, sy, s, 0, Math.PI * 2);
+          fctx.fill();
+        }
+        fctx.globalCompositeOperation = 'source-over';
+        fctx.beginPath();
+        fctx.arc(cx, cy, r * 0.98, 0, Math.PI * 2);
+        fctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        fctx.lineWidth = Math.max(1, r * 0.05);
+        fctx.stroke();
+      })();
+
+      const moonSize = 400;
+      const moonCanvas = createOffscreen(moonSize, moonSize);
+      const mctx = moonCanvas.getContext('2d');
+      (function buildMoon() {
+        mctx.clearRect(0, 0, moonSize, moonSize);
+        const cx = moonSize / 2, cy = moonSize / 2, r = moonSize * 0.42;
+        const base = mctx.createRadialGradient(cx - r * 0.1, cy - r * 0.1, r * 0.05, cx, cy, r);
+        base.addColorStop(0, '#ffffff');
+        base.addColorStop(0.55, '#e6e6e6');
+        base.addColorStop(1, '#cfcfcf');
+        mctx.fillStyle = base;
+        mctx.beginPath();
+        mctx.arc(cx, cy, r, 0, Math.PI * 2);
+        mctx.fill();
+        mctx.globalAlpha = 0.95;
+        mctx.fillStyle = 'rgba(140,140,150,0.12)';
+        mctx.beginPath();
+        mctx.ellipse(cx - r * 0.2, cy - r * 0.08, r * 0.5, r * 0.28, -0.15, 0, Math.PI * 2);
+        mctx.fill();
+        mctx.beginPath();
+        mctx.ellipse(cx + r * 0.25, cy + r * 0.06, r * 0.33, r * 0.2, 0.2, 0, Math.PI * 2);
+        mctx.fill();
+        const craterCount = 140;
+        for (let i = 0; i < craterCount; i++) {
+          const ang = Math.random() * Math.PI * 2;
+          const dist = Math.pow(Math.random(), 0.9) * r * 0.85;
+          const sx = cx + Math.cos(ang) * dist;
+          const sy = cy + Math.sin(ang) * dist;
+          const cr = Math.random() * r * 0.06 + 2;
+          mctx.beginPath();
+          mctx.fillStyle = 'rgba(0,0,0,0.12)';
+          mctx.arc(sx + cr * 0.4, sy + cr * 0.4, cr, 0, Math.PI * 2);
+          mctx.fill();
+          mctx.beginPath();
+          mctx.fillStyle = 'rgba(255,255,255,0.06)';
+          mctx.arc(sx - cr * 0.2, sy - cr * 0.2, cr * 0.8, 0, Math.PI * 2);
+          mctx.fill();
+          mctx.beginPath();
+          mctx.fillStyle = 'rgba(40,40,45,0.35)';
+          mctx.arc(sx, sy, cr * 0.8, 0, Math.PI * 2);
+          mctx.fill();
+        }
+        mctx.globalCompositeOperation = 'overlay';
+        mctx.fillStyle = 'rgba(255,255,255,0.02)';
+        for (let i = 0; i < 2000; i++) {
+          const px = Math.random() * moonSize, py = Math.random() * moonSize;
+          mctx.fillRect(px, py, 1, 1);
+        }
+        mctx.globalCompositeOperation = 'source-over';
+      })();
+
+      const wrapCanvas = createOffscreen(760, 760);
+      const wctx = wrapCanvas.getContext('2d');
+      (function buildWrapper() {
+        wctx.clearRect(0, 0, wrapCanvas.width, wrapCanvas.height);
+        const cx = wrapCanvas.width / 2, cy = wrapCanvas.height / 2 + 30;
+        const W = 420, H = 520;
+        const grad = wctx.createLinearGradient(cx - W * 0.6, cy - H * 0.6, cx + W * 0.6, cy + H * 0.6);
+        grad.addColorStop(0, '#fff5f7');
+        grad.addColorStop(0.5, '#f2d9d9');
+        grad.addColorStop(1, '#f0c9c9');
+        wctx.fillStyle = grad;
+        wctx.beginPath();
+        wctx.moveTo(cx - W * 0.6, cy - H * 0.35);
+        wctx.quadraticCurveTo(cx, cy - H * 0.6, cx + W * 0.6, cy - H * 0.35);
+        wctx.lineTo(cx + W * 0.38, cy + H * 0.48);
+        wctx.quadraticCurveTo(cx, cy + H * 0.68, cx - W * 0.42, cy + H * 0.48);
+        wctx.closePath();
+        wctx.fill();
+        wctx.beginPath();
+        wctx.moveTo(cx - W * 0.42, cy + H * 0.48);
+        wctx.lineTo(cx - W * 0.15, cy - H * 0.12);
+        wctx.lineTo(cx, cy + H * 0.02);
+        wctx.closePath();
+        wctx.fillStyle = 'rgba(0,0,0,0.06)';
+        wctx.fill();
+        wctx.lineWidth = 3;
+        wctx.strokeStyle = 'rgba(0,0,0,0.09)';
+        wctx.stroke();
+        const rx = cx, ry = cy + H * 0.36;
+        wctx.fillStyle = '#8b0f46';
+        wctx.beginPath();
+        wctx.moveTo(rx - 36, ry - 6);
+        wctx.lineTo(rx - 18, ry + 60);
+        wctx.lineTo(rx - 60, ry + 66);
+        wctx.lineTo(rx - 30, ry - 6);
+        wctx.closePath();
+        wctx.fill();
+        wctx.beginPath();
+        wctx.moveTo(rx + 36, ry - 6);
+        wctx.lineTo(rx + 18, ry + 60);
+        wctx.lineTo(rx + 60, ry + 66);
+        wctx.lineTo(rx + 30, ry - 6);
+        wctx.closePath();
+        wctx.fill();
+        wctx.fillStyle = '#d81b60';
+        wctx.beginPath();
+        wctx.ellipse(rx - 34, ry + 6, 46, 30, -0.5, 0, Math.PI * 2);
+        wctx.fill();
+        wctx.strokeStyle = 'rgba(0,0,0,0.12)';
+        wctx.stroke();
+        wctx.beginPath();
+        wctx.ellipse(rx + 34, ry + 6, 46, 30, 0.5, 0, Math.PI * 2);
+        wctx.fill();
+        wctx.stroke();
+        wctx.fillStyle = '#8b0f46';
+        wctx.beginPath();
+        wctx.ellipse(rx, ry + 12, 28, 20, 0, 0, Math.PI * 2);
+        wctx.fill();
+        wctx.stroke();
+      })();
+
+      let running = false;
+      let rafId = null;
+      let startTime = 0;
+      const animationDuration = 30000;
+      const bouquetDisplayDuration = 5000;
+      const fadeDuration = 5000;
+
+      function getPositions(cx, cy) {
+        return [
+          { x: cx - 40, y: cy + 30, s: 0.95 },
+          { x: cx + 40, y: cy + 30, s: 0.95 },
+          { x: cx - 20, y: cy - 40, s: 1.05 },
+          { x: cx + 20, y: cy - 40, s: 1.05 },
+          { x: cx, y: cy - 100, s: 1.12 }
+        ];
+      }
+
+      function blitFlowerTo(ctxMain, sx, sy, scale = 1, rot = 0) {
+        ctxMain.save();
+        ctxMain.translate(sx, sy);
+        ctxMain.rotate(rot);
+        ctxMain.scale(scale, scale);
+        ctxMain.drawImage(flowerCanvas, -flowerSize / 2, -flowerSize / 2, flowerSize, flowerSize);
+        ctxMain.restore();
+      }
+
+      function blitMoonTo(ctxMain, sx, sy, scale = 1, alpha = 1) {
+        ctxMain.save();
+        ctxMain.globalAlpha = alpha;
+        ctxMain.translate(sx, sy);
+        ctxMain.scale(scale, scale);
+        ctxMain.drawImage(moonCanvas, -moonSize / 2, -moonSize / 2, moonSize, moonSize);
+        ctxMain.restore();
+      }
+
+      function blitWrapperTo(ctxMain, cx, cy, scale = 1) {
+        ctxMain.save();
+        ctxMain.translate(cx, cy);
+        ctxMain.scale(scale, scale);
+        ctxMain.drawImage(wrapCanvas, -wrapCanvas.width / 2, -wrapCanvas.height / 2, wrapCanvas.width, wrapCanvas.height);
+        ctxMain.restore();
+      }
+
+      function drawHeart(ctxMain, x, y, scale, alpha) {
+        ctxMain.save();
+        ctxMain.globalAlpha = alpha;
+        ctxMain.translate(x, y);
+        ctxMain.scale(scale, scale);
+        ctxMain.beginPath();
+        ctxMain.moveTo(0, -26);
+        ctxMain.bezierCurveTo(-30, -66, -100, -12, 0, 68);
+        ctxMain.bezierCurveTo(100, -12, 30, -66, 0, -26);
+        ctxMain.fillStyle = '#ff4b6e';
+        ctxMain.shadowColor = 'rgba(255,75,110,0.16)';
+        ctxMain.shadowBlur = 24;
+        ctxMain.fill();
+        ctxMain.restore();
+      }
+
+      function drawStars(t) {
+        const W = canvas.width / DPR;
+        const H = canvas.height / DPR;
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        for (let i = 0; i < 120; i++) {
+          const sx = ((i * 9301) % (W * 100)) / 100 + (Math.sin(t * 0.0002 + i) * 6);
+          const sy = ((i * 49297) % (H * 100)) / 100 + (Math.cos(t * 0.00015 + i) * 4);
+          const r = (((i * 7) % 10) / 10) * 1.4 + 0.2;
+          ctx.fillStyle = `rgba(255,255,255,${0.2 + 0.5 * Math.abs(Math.sin(t * 0.001 + i))})`;
+          ctx.beginPath();
+          ctx.arc(sx % W, sy % H, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function frame(ts) {
+        if (!running) {
+          requestAnimationFrame(frame);
+          return;
+        }
+
+        if (!startTime) startTime = ts;
+        const t = ts - startTime;
+        if (t > animationDuration) {
+          running = false;
+          return;
+        }
+
+        const W = canvas.width / DPR;
+        const H = canvas.height / DPR;
+        ctx.clearRect(0, 0, W, H);
+        
+        const bg = ctx.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, '#020214');
+        bg.addColorStop(1, '#07060a');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+
+        drawStars(t);
+
+        const cx = W / 2;
+        const cy = H / 2;
+
+        let bouquetAlpha, moonTextAlpha;
+
+        if (t < bouquetDisplayDuration) {
+          bouquetAlpha = 1;
+          moonTextAlpha = 0;
+        } else if (t >= bouquetDisplayDuration && t < bouquetDisplayDuration + fadeDuration) {
+          const fadeProgress = (t - bouquetDisplayDuration) / fadeDuration;
+          bouquetAlpha = 1 - fadeProgress;
+          moonTextAlpha = fadeProgress;
+        } else {
+          bouquetAlpha = 0;
+          moonTextAlpha = 1;
+        }
+
+        if (bouquetAlpha > 0) {
+          ctx.save();
+          ctx.globalAlpha = bouquetAlpha;
+          
+          const baseScale = Math.min(1.0, W / 500, H / 900);
+          const wrapperScale = baseScale * 0.8;
+          const wrapperYPos = H * 0.65;
+          const flowersYOffset = wrapperYPos - 140 * baseScale;
+
+          ctx.beginPath();
+          ctx.ellipse(cx, wrapperYPos + 20 * wrapperScale, 190 * wrapperScale, 48 * wrapperScale, 0, 0, Math.PI * 2);
+          ctx.fillStyle = '#000';
+          ctx.fill();
+          blitWrapperTo(ctx, cx, wrapperYPos, wrapperScale);
+
+          const positions = getPositions(cx, flowersYOffset, baseScale);
+          for (let i = 0; i < positions.length; i++) {
+            const p = positions[i];
+            const sway = Math.sin(t * 0.0012 + i * 0.9) * 0.06;
+            const bob = Math.sin(t * 0.0009 + i * 1.1) * (2.0 + i * 0.6);
+            const rot = sway * 0.35;
+            blitFlowerTo(ctx, p.x + sway * 24, p.y + bob, p.s * baseScale, rot);
+          }
+          ctx.globalCompositeOperation = 'lighter';
+          const rg = ctx.createLinearGradient(cx - 120 * baseScale, wrapperYPos, cx + 120 * baseScale, wrapperYPos);
+          rg.addColorStop(0, 'rgba(255,255,255,0)');
+          rg.addColorStop(0.5, 'rgba(255,255,255,0.06)');
+          rg.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = rg;
+          ctx.fillRect(cx - 220 * baseScale, wrapperYPos - 40 * baseScale, 440 * baseScale, 80 * baseScale);
+          ctx.globalCompositeOperation = 'source-over';
+          const heartScale = (0.36 + 0.02 * Math.sin(t * 0.0035)) * baseScale * 0.8;
+          drawHeart(ctx, cx, wrapperYPos - 300 * baseScale + Math.sin(t * 0.0017) * 6, heartScale, 1);
+          ctx.restore();
+        }
+
+        if (moonTextAlpha > 0) {
+          ctx.save();
+          ctx.globalAlpha = moonTextAlpha;
+          const moonScale = Math.min(0.7, (W / 1200));
+          const moonX = W * 0.5 + Math.sin(t * 0.0007) * 6;
+          const moonY = H * 0.35 + Math.cos(t * 0.0009) * 4;
+          blitMoonTo(ctx, moonX, moonY, moonScale, 1.0);
+          
+          const fontSize = Math.min(24, W / 25);
+          ctx.font = `italic ${fontSize}px Georgia, serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(255,255,255,0.98)';
+          
+          const textLine1 = 'Te amo de la Tierra a la Luna y más que eso mi amor,';
+          const textLine2 = 'te adoro y sos todo para mi ❤️';
+
+          ctx.fillText(textLine1, cx, H * 0.65);
+          ctx.fillText(textLine2, cx, H * 0.65 + fontSize * 1.5);
+
+          ctx.restore();
+        }
+
+        rafId = requestAnimationFrame(frame);
+      }
+      
+      startBtn.addEventListener('click', () => {
+        intro.style.display = 'none';
+        running = true;
+        startTime = performance.now();
+      });
+
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
